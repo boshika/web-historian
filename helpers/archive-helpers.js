@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var helpers = require('../web/http-helpers.js');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -25,17 +26,48 @@ exports.initialize = function(pathsObj){
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(){
+exports.readListOfUrls = function(callback){
+  fs.readFile(exports.paths.list, function(error, data) {
+    data = data.toString().split('\n');
+    callback(data);
+  });
 };
 
-exports.isUrlInList = function(){
+exports.isUrlInList = function(url, callback){
+  console.log("checking if url is in list");
+  exports.readListOfUrls(function(contents) {
+    if(url) {
+      callback(contents);
+    }
+  });
 };
 
-exports.addUrlToList = function(){
+exports.addUrlToList = function(url){
+  // var pathName = '/' + url.slice(4);
+  //append 
+  fs.appendFile(exports.paths.list, url, '\n', function(error) {
+    if(error) {
+      console.log("There is a error" + error);
+    }
+  });
+  //add file
+  // var writeFile = fs.openSync(exports.paths.list + pathName, "wx");
+  // fs.writeSync(writeFile, pathName);
+  // fs.closeSync(exports.paths.list + pathName);
+  //add to sites.txt
 };
 
-exports.isUrlArchived = function(){
+exports.isUrlArchived = function(url, callback){
+  console.log("checking if url is archived");
+  fs.readdir(exports.paths.archivedSites, function(error, data) {
+    callback(_.contains(data, url));
+  });
 };
 
-exports.downloadUrls = function(){
+exports.downloadUrls = function(url){
+  http.get('http://' + url, function(response) {
+    helpers.handlePost(response, function(data) {
+      fs.writeFile(path.join(exports.paths.archivedSites, url), data);
+    });
+  });
 };
